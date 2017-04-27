@@ -19,8 +19,8 @@ public class main {
 
     //Starting timers for Exam1,2,3
     public static long exam1Time = 1500;
-    public static long exam2Time = 2000;
-    public static long exam3Time = 2500;
+    public static long exam2Time = 2500;
+    public static long exam3Time = 3000;
     public static long breakTime = 100;
     public static long examDuration = 200;
 

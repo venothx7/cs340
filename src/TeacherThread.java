@@ -102,8 +102,6 @@ public class TeacherThread extends Thread {
         }
 
 
-
-
         // allow Teacher to take a break
         try {
             msg("Break time:" + main.breakTime);

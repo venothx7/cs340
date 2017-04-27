@@ -5,7 +5,6 @@ public class studentThread extends Thread implements Comparable<studentThread> {
     private static int Exam1 = 0;
     private static int Exam2 = 0;
     private static int Exam3 = 0;
-    private static int numExamsTaken=0;
 
 
     public static long time = System.currentTimeMillis();
@@ -114,11 +113,11 @@ public class studentThread extends Thread implements Comparable<studentThread> {
         /*
          *************************   EXAM 2 ****************************
          */
-        //Priroty shud be 6 for students that took exam 1
+        //Priroty shud be 6
         if (TeacherThread.examNum == 2)
 
         {
-            //if student just came AND room is room is closed, add to waitQue
+            // For students that came after exam1 Started and Room is closed
             if (getPriority() ==10 && TeacherThread.getRoomClosed()){
                 setPriority(Thread.currentThread().getPriority() - 3);
                 Que.addWaitQue((studentThread) Thread.currentThread());
@@ -142,7 +141,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
 
             //Wait until Exam 2 starts
             try {
-                Thread.sleep((main.exam2Time + 5) - (System.currentTimeMillis() - time));
+                Thread.sleep((main.exam2Time ) - (System.currentTimeMillis() - time));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
