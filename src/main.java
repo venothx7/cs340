@@ -9,8 +9,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 // randGen.nextInt((max-min) + 1 ) + min;
 public class main {
     //Default values
-    private static int maxCapacity = 4; //Q1
-    private static int numStudents = 6; // Q2,+1
+    public static int maxCapacity = 5; //Q, one less than actual value
+    public static int numStudents = 11; // Q2,-1 , 15
 
     //Threads
     public static studentThread[] student;

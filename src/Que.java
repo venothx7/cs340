@@ -4,8 +4,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class Que {
 
-    public static Queue<studentThread> waitQue = new PriorityBlockingQueue<>(6); // size 14
-    public static Queue<studentThread> classroomQue = new PriorityBlockingQueue<>(4); //size 10
+    public static Queue<studentThread> waitQue = new PriorityBlockingQueue<>(14); // size 14
+    public static Queue<studentThread> classroomQue = new PriorityBlockingQueue<>(main.maxCapacity); //size 10
 
 
     public static synchronized void addWaitQue(studentThread waitList) {
@@ -13,15 +13,15 @@ public class Que {
     }
 
     public static synchronized studentThread deWaitQue() {
-        return waitQue.poll();
+        return waitQue.remove();
     }
 
     public static synchronized void addClassroomQue(studentThread waitList) {
         classroomQue.add(waitList);
     }
 
-    public static synchronized studentThread deClassroomQue(studentThread waitList) {
-        return classroomQue.poll();
+    public static synchronized studentThread deClassroomQue() {
+        return classroomQue.remove();
     }
 
 }

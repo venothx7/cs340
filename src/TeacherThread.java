@@ -26,29 +26,29 @@ public class TeacherThread extends Thread {
 
         //dumps Q1 into Q2
         //if expression is true, than take the left value
-        int temp = Que.waitQue.size() <= 10 ? Que.waitQue.size() : 10;
-        // System.out.println("temp: "+temp);
+        int temp = Que.waitQue.size() < main.maxCapacity ? Que.waitQue.size() : main.maxCapacity;
         // make sure temp is always less than 10 or size of waitQue
+        studentThread stud;
         for (int i = 1; i <= temp; i++) {
-            studentThread s = Que.deWaitQue();
-            if (s != null) {
-                s.setPriority(s.getPriority() - 1);
-                Que.addClassroomQue(s);
-                msg("dumped to Q2");
+            stud = Que.deWaitQue();
+            if (stud != null) {
+                stud.setPriority(stud.getPriority() - 1);
+                Que.addClassroomQue(stud);
+                msg("dumped to Q2 " + stud.toString());
             }
         }
 
 
         //busy wait, wait until class room is filled or exam1 starts
         //System.out.println(main.exam1Time);
-        while ((System.currentTimeMillis() - time) <= main.exam1Time && Que.classroomQue.size() <= 10) {
+        while ((System.currentTimeMillis() - time) <= main.exam1Time && Que.classroomQue.size() <= main.maxCapacity) {
             try {
                 Thread.sleep(5);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        if (Que.classroomQue.size() <= 10) {
+        if (Que.classroomQue.size() <= main.maxCapacity) {
             roomClosed = true; //close room
         }
 
@@ -69,16 +69,16 @@ public class TeacherThread extends Thread {
 
 
         // PRINTING classroomQue
-        Iterator it = Que.classroomQue.iterator();
+//        Iterator it = Que.classroomQue.iterator();
+//        System.out.println("classroomQue:" + Que.classroomQue.size());
+//        while (it.hasNext()) {
+//            System.out.println(" " + it.next().toString());
+//        }
+
         System.out.println("classroomQue:" + Que.classroomQue.size());
-        while (it.hasNext()) {
-            System.out.println(" " + it.next().toString());
+        for (studentThread s : Que.classroomQue) {
+            System.out.println("  " + s.toString());
         }
-
-
-        //System.out.println("  "+ Que.classroomQue.peek());
-        //System.out.println("class room size: " + Que.classroomQue.size());
-        //System.out.println("  " + main.student[4].toString());
 
 
         // Put Teacher to Sleep for duration ot Exam time 200ms
@@ -101,43 +101,96 @@ public class TeacherThread extends Thread {
             e.printStackTrace();
         }
 
-
         // allow Teacher to take a break
+        msg("Break time:" + main.breakTime + ", next Exam starts: " + main.exam2Time);
+
+
+        System.out.println("waitQue Size : " + Que.waitQue.size());
+        for (studentThread s : Que.waitQue) {
+
+            System.out.println(" in waitQ " + s.toString());
+        }
         try {
-            msg("Break time:" + main.breakTime);
+
+            // dump students from Classroom to waitQue
+            for (studentThread s : Que.classroomQue) {
+                s.setPriority(7);
+                Que.addWaitQue(Que.deClassroomQue());
+                msg("dumped to waitQ from Q2 " + s.toString());
+            }
+
             Thread.sleep(main.breakTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
+        // Check if classroomQ is 0
+        System.out.println("Class room Size : " + Que.classroomQue.size());
+        System.out.println("waitQue Size : " + Que.waitQue.size());
+        for (studentThread s : Que.waitQue) {
+
+            System.out.println(" in waitQ " + s.toString());
+        }
+
         //***************** EXAM 2 ***********************
-        // open room
-        roomClosed=false;
 
-
+        System.out.println();
+        System.out.println();
+        msg("Exam 2 Starting Soon");
 
         //dumps Q1 into Q2
         //if expression is true, than take the left value
-        int tem = Que.waitQue.size() <= 10 ? Que.waitQue.size() : 10;
-        // System.out.println("temp: "+temp);
+        temp = Que.waitQue.size() < main.maxCapacity ? Que.waitQue.size() : main.maxCapacity;
         // make sure temp is always less than 10 or size of waitQue
         for (int i = 1; i <= temp; i++) {
-            studentThread s = Que.deWaitQue();
-            if (s != null) {
-                s.setPriority(s.getPriority() - 1);
-                Que.addClassroomQue(s);
-                msg("dumped to Q22");
+            stud = Que.deWaitQue();
+            if (stud != null) {
+                stud.setPriority(stud.getPriority() - 1);
+                Que.addClassroomQue(stud);
+                msg(" dumped to Classroom FOR EXAM 2 " + stud.toString());
             }
         }
 
 
+
+        roomClosed = false;// open room
+
+        //Until Exam 2 time comes up
+        while ((System.currentTimeMillis() - time) <= main.exam2Time) {
+            try {
+                Thread.sleep(25);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        msg("--------------------Exam 2 Started -------------------------------------------------------");
+
+
+        roomClosed = true;//close room
+
+        //Printing Students currently taking Exam2
+        System.out.println("classroomQue:" + Que.classroomQue.size());
+        for (studentThread s : Que.classroomQue) {
+            System.out.println("  " + s.toString());
+        }
+
+        System.out.println("waitmQue:" + Que.waitQue.size());
+        for (studentThread s : Que.waitQue) {
+            System.out.println("  " + s.toString());
+        }
+
+        //***************** EXAM 3 ***********************
+        msg("--------------------Exam 3-------------------------------------------------------");
+        examNum++;
         msg("Teacher Left");
     }
 
     //Simulates students to arrive in different times to school.
     private void arrivesInSchool() {
         Random randGen = new Random();
-        int random = randGen.nextInt(550); // teacher will arrive before exam1 starts for sure
+        int random = randGen.nextInt(1350); // teacher will arrive before exam1 starts for sure
         try {
             Thread.sleep(random);
         } catch (InterruptedException e) {
@@ -146,6 +199,7 @@ public class TeacherThread extends Thread {
         msg("arrived: " + random + "ms"); // Prints teacher arrived
 
     }
+
     // Assigns Grade from 10-100, inputt he student and the Exam#
     public static synchronized void assignGrade(int examNum, studentThread s) {
         Random randGen = new Random();
@@ -162,6 +216,7 @@ public class TeacherThread extends Thread {
 
         }
     }
+
     public static synchronized int assignGrade1() {
         Random randGen = new Random();
 
@@ -169,12 +224,15 @@ public class TeacherThread extends Thread {
 
 
     }
+
     public void msg(String m) {
         System.out.println("[" + (System.currentTimeMillis() - time) + "] " + getName() + ": " + m);
     }
+
     public static boolean getRoomClosed() {
         return roomClosed;
     }
+
     public void setRoomClosed(Boolean roomClosed) {
         this.roomClosed = roomClosed;
     }

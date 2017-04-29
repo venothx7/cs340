@@ -35,32 +35,29 @@ public class studentThread extends Thread implements Comparable<studentThread> {
 
             // ********* If roomClosed, then add student to Wait Que *********
             if (TeacherThread.getRoomClosed()) {
+                //set P=9 if waiting for on waitQ
                 setPriority(Thread.currentThread().getPriority() - 1);
                 Que.addWaitQue((studentThread) Thread.currentThread());
-                msg("arrived, and added to Q1 for Exam 1");
+                msg("arrived, and added to waitQue for Exam 1");
             }
 
             // ******************  Wait for Teacher to Open Door ******************
             waitRoomOpen();
 
-
-            /*
-                To Add Students that Come after Room is open
-                Add Directly to classroomQue if it has space
-                Else, add back to waitQue for Next Exam
-             */
+            //Add students that come after room is Open(Teacher arrived)
             if (Thread.currentThread().getPriority() == 10) {
 
-                //If room is open AND class room is not full, add to classroom
-                if (!TeacherThread.getRoomClosed() && Que.classroomQue.size() <= 10) {
+                //class room is not full, add to classroom
+                if ( Que.classroomQue.size() < main.maxCapacity) {
+                    // if student inside classroom, P=8
                     setPriority(Thread.currentThread().getPriority() - 2);
                     Que.addClassroomQue((studentThread) Thread.currentThread());
-                    msg("added to Q2 for Exam " + TeacherThread.examNum);
+                    msg("added to classroom for Exam " + TeacherThread.examNum);
 
                 }
                 //if room open and class is full then add to waitQ
                 else {
-                    setPriority(Thread.currentThread().getPriority() - 1);
+                    setPriority(Thread.currentThread().getPriority() - 3);
                     Que.addWaitQue((studentThread) Thread.currentThread());
                     msg("Missed Exam 1(Classroom Full), added to Q1 for Exam 2");
                 }
@@ -68,7 +65,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
 
             // put student to sleep until exam 1 Starts
             try {
-                Thread.sleep((main.exam1Time + 5) - (System.currentTimeMillis() - time));
+                Thread.sleep((main.exam1Time ) - (System.currentTimeMillis() - time));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -76,15 +73,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
             // EXAM 1 Started
             // For students that are in the Class Room
             if (Que.classroomQue.contains(Thread.currentThread())) {
-//            // BusyWait, Wait until Exam starts
-//            while ((System.currentTimeMillis() - time) <= main.exam1Time) {
-//                try {
-//                    Thread.sleep(100);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-                // Put Students taking Exam to Sleep
+
 
                 // Students go to sleep During Exam, wait till they get Interrupted
                 try {
@@ -105,6 +94,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
 
 
             }
+            msg("done with exam1");
         }
 
 
@@ -113,54 +103,67 @@ public class studentThread extends Thread implements Comparable<studentThread> {
         /*
          *************************   EXAM 2 ****************************
          */
-        //Priroty shud be 6
-        if (TeacherThread.examNum == 2)
 
+        //Students coming after taking Exam 1, P= 8
+        //Fresh Students tht missed Exam1, P=10
+        //Students tht came for Exam1, but missed, P=7,alrdy in Q1
+
+
+
+        if (TeacherThread.examNum ==2)
         {
-            // For students that came after exam1 Started and Room is closed
+            // Fresh students, students that came after exam1 started and Room is closed
             if (getPriority() ==10 && TeacherThread.getRoomClosed()){
-                setPriority(Thread.currentThread().getPriority() - 3);
+                setPriority(7);
                 Que.addWaitQue((studentThread) Thread.currentThread());
                 msg("added to Q1 for Exam 2, missed Exam1");
             }
 
             //busy waiting,Wait for teacher to open room
-            waitRoomOpen();
+            while (TeacherThread.getRoomClosed()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
 
             // For students that came after exam1 Started and Room is open, add to ClassroomQ
-            if (getPriority() ==10 && Que.classroomQue.size() <= 10){
+            if (getPriority() ==10 && Que.classroomQue.size() < main.maxCapacity){
                 setPriority(Thread.currentThread().getPriority() - 4);
                 Que.addClassroomQue((studentThread) Thread.currentThread());
                 msg("added to Q2 for Exam 2, missed Exam1");
             }
             //if class is full add to waitQ for Exam 3
             else{
-                setPriority(Thread.currentThread().getPriority() - 3);
+                setPriority(Thread.currentThread().getPriority() - 1);
                 Que.addWaitQue((studentThread) Thread.currentThread());
             }
 
             //Wait until Exam 2 starts
+            while ((main.exam2Time ) >= (System.currentTimeMillis() - time))
             try {
-                Thread.sleep((main.exam2Time ) - (System.currentTimeMillis() - time));
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
+
             if (Que.classroomQue.contains(Thread.currentThread())) {
-
-
                 // Students go to sleep During Exam, wait till they get Interrupted
                 try {
                     msg("Sleeping during Exam 2");
-                    Thread.sleep(5000);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
-                    Exam1 = randGen.nextInt(91) + 10;
-                    msg("Interrupted by Teacher in EXAM 1, Grade: " + Exam1);
+                    Exam2 = randGen.nextInt(91) + 10;
+                    msg("Interrupted by Teacher in EXAM 1, Grade: " + Exam2);
                 }
 
 
                 // allow students to take a break
                 try {
+                    msg("Breaktime ");
                     Thread.sleep(main.breakTime);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -170,11 +173,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
             }
 
 
-
-
             // add here
-
-
         }
 
         msg("Ended run");
@@ -186,7 +185,7 @@ public class studentThread extends Thread implements Comparable<studentThread> {
     private void arrivesInSchool() {
 
         Random randGen = new Random();
-        int random = randGen.nextInt(2000);
+        int random = randGen.nextInt(2400);
         timeArrived = random;
         try {
             Thread.sleep(random);
